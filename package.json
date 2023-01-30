@@ -1,0 +1,32 @@
+{
+  "name": "lucide-mithril",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "ts-types": "tsc --outDir lib",
+    "generate": "node ./generate.mjs",
+    "build": "rimraf lib && npm run generate && node ./build.mjs && npm run ts-types",
+    "test": "npm run generate && jest"
+  },
+    "keywords": ["mithril", "icons", "lucide"],
+    "author": "Lucide Contributors, Lennart Vogelsang",
+    "license": "MIT,ISC",
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/mithril": "^2.0.12",
+    "esbuild": "^0.17.5",
+    "jest": "^29.4.1",
+    "jest-environment-jsdom": "^29.4.1",
+    "lucide-static": "^0.107.0",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@minify-html/node": "^0.10.7",
+    "mithril": "^2.2.2",
+    "rimraf": "^4.1.2"
+  }
+}
