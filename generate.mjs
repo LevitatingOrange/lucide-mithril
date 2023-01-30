@@ -2,9 +2,14 @@ import ts from "typescript";
 import fs from "fs";
 import path from "path";
 import * as minifyHtml from "@minify-html/node";
+import DOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
+
+const window = new JSDOM("").window;
+const purify = DOMPurify(window);
 
 const INDEX_FILE_PROLOG = `
-import m, { Vnode, Attributes } from "mithril";
+import m, { Component } from "mithril";
 
 /* @license
 License for all svg content (icons):
@@ -92,13 +97,28 @@ let icon_declarations = fs
   )
   .map((file) => {
     let text = "";
-    const svg_content = fs.readFileSync(ICON_FOLDER + "/" + file);
-    const icon_name = replace_dashes(path.basename(file, ICON_EXTENSION));
+
+    // i know, i know, this is really paranoid
+    const svg_content = purify.sanitize(
+      fs.readFileSync(ICON_FOLDER + "/" + file),
+      {
+        USE_PROFILES: { svg: true },
+      }
+    );
+
+    let icon_name = replace_dashes(path.basename(file, ICON_EXTENSION));
+
+    if (icon_name === "component") {
+      icon_name = "component_icon";
+    }
+
     const icon_class = replace_underscores(icon_name);
 
     const icon_lit = ts.factory.createStringLiteral(
       minifyHtml.default
-        .minify(svg_content, { keep_spaces_between_attributes: true })
+        .minify(Buffer.from(svg_content), {
+          keep_spaces_between_attributes: true,
+        })
         .toString()
     );
 
@@ -106,6 +126,38 @@ let icon_declarations = fs
       ts.factory.createPropertyAccessExpression(mithril_id, "trust"),
       undefined,
       [icon_lit]
+    );
+
+    const component_def = ts.factory.createObjectLiteralExpression(
+      [
+        ts.factory.createPropertyAssignment(
+          "view",
+          ts.factory.createArrowFunction(
+            undefined,
+            undefined,
+            [
+              ts.factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                ts.factory.createObjectBindingPattern([
+                  ts.factory.createShorthandPropertyAssignment("attrs"),
+                ]),
+                undefined,
+                undefined,
+                undefined
+              ),
+            ],
+            undefined,
+            undefined,
+            ts.factory.createCallExpression(mithril_id, undefined, [
+              ts.factory.createStringLiteral(`.lucide-icon.${icon_class}`),
+              ts.factory.createIdentifier("attrs"),
+              svg_def,
+            ])
+          )
+        ),
+      ],
+      false
     );
 
     const icon_def = ts.factory.createExportDeclaration(
@@ -116,11 +168,8 @@ let icon_declarations = fs
           ts.factory.createVariableDeclaration(
             to_pascal_case(icon_name),
             undefined,
-            ts.factory.createTypeReferenceNode("Vnode<Attributes, {}>"),
-            ts.factory.createCallExpression(mithril_id, undefined, [
-              ts.factory.createStringLiteral(`.lucide-icon.${icon_class}`),
-              svg_def,
-            ])
+            ts.factory.createTypeReferenceNode("Component"),
+            component_def
           ),
         ],
         ts.NodeFlags.Const

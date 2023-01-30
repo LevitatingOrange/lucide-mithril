@@ -8,7 +8,10 @@ import * as icons from "./index";
 
 const TestComponent: Component = {
   view: () => {
-    return m(".icons", Object.values(icons));
+    return m(
+      ".icons",
+      Object.values(icons).map((icon) => m(icon))
+    );
   },
 };
 
