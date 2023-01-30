@@ -25,7 +25,7 @@ test("icons get rendered", () => {
   expect(icons.length).toBeGreaterThan(1);
 
   for (let child of icons) {
-    expect(child.tagName.toLowerCase()).toBe("div");
+    expect(child.tagName.toLowerCase()).toBe("span");
     let children = child.children;
     expect(children.length).toBe(1);
     expect(children[0].tagName.toLowerCase()).toBe("svg");

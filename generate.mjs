@@ -150,7 +150,7 @@ let icon_declarations = fs
             undefined,
             undefined,
             ts.factory.createCallExpression(mithril_id, undefined, [
-              ts.factory.createStringLiteral(`.lucide-icon.${icon_class}`),
+              ts.factory.createStringLiteral(`span.lucide-icon.${icon_class}`),
               ts.factory.createIdentifier("attrs"),
               svg_def,
             ])
